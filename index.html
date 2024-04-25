@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - dengue beta</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Archivos de Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #fileInput {
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Estilo para las líneas horizontales */
+        tr {
+            border-bottom: 2px solid #333; /* Línea más gruesa y oscura */
+        }
+    </style>
+</head>
+<body>
+    <h2>Resultados Totales</h2>
+    <p>Total de casos de "dengue": <span id="totalDengueCount"></span></p>
+    <p>Total de casos de "fiebre en estudio": <span id="totalFiebreCount"></span></p>
+    <h2 id="documentoNombre"></h2>
+    <hr>
+    <h2>Analizador de Archivos de Excel</h2>
+    <input type="file" id="fileInput" accept=".xlsx" multiple>
+    <div id="dataTable"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            var files = e.target.files;
+            var tableHTML = '';
+
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    var sheetName = workbook.SheetNames[0];
+                    var sheet = workbook.Sheets[sheetName];
+
+                    tableHTML += '<h3>' + file.name + '</h3>';
+                    tableHTML += XLSX.utils.sheet_to_html(sheet);
+                    document.getElementById('dataTable').innerHTML = tableHTML;
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
+
+            // Contar ocurrencias de la palabra "dengue" y "fiebre"
+            var totalDengueCount = 0;
+            var totalFiebreCount = 0;
+
+            for (var j = 0; j < files.length; j++) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    var sheetName = workbook.SheetNames[0];
+                    var sheet = workbook.Sheets[sheetName];
+                    var sheetData = XLSX.utils.sheet_to_json(sheet);
+                    totalDengueCount += countOccurrences(sheetData, 'dengue');
+                    totalFiebreCount += countOccurrences(sheetData, 'fiebre');
+                    document.getElementById('totalDengueCount').innerText = totalDengueCount;
+                    document.getElementById('totalFiebreCount').innerText = totalFiebreCount;
+                    document.getElementById('documentoNombre').innerText = 'Documento: ' + files[j].name;
+                };
+                reader.readAsArrayBuffer(files[j]);
+            }
+        });
+
+        // Función para contar ocurrencias de una palabra en los datos de la hoja
+        function countOccurrences(data, word) {
+            var count = 0;
+            for (var k = 0; k < data.length; k++) {
+                for (var key in data[k]) {
+                    var cellValue = data[k][key];
+                    if (typeof cellValue === 'string' && cellValue.toLowerCase().includes(word.toLowerCase())) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
